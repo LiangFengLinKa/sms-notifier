@@ -5,6 +5,7 @@ import winreg
 import sys
 import socket
 import re
+import pyautogui
 import pyperclip
 import logging
 import os
@@ -137,6 +138,18 @@ def _show_toast(code: str, client_ip: str) -> None:
         logger.warning("显示系统通知失败（win11toast）: %s", exc)
 
 
+def _paste_and_submit() -> None:
+    """
+    将剪贴板内容粘贴到当前焦点并按回车。
+    """
+    try:
+        pyautogui.hotkey("ctrl", "v")
+        pyautogui.press("enter")
+        logger.info("已自动粘贴验证码并回车。")
+    except Exception as exc:
+        logger.warning("自动粘贴并回车失败: %s", exc)
+
+
 @app.route("/api/code", methods=["POST"])
 def receive_code():
     data = request.get_json(silent=True) or {}
@@ -169,6 +182,7 @@ def receive_code():
     try:
         pyperclip.copy(code)
         logger.info("验证码已复制到剪贴板: %s", code)
+        _paste_and_submit()
     except Exception as exc:
         logger.warning("复制到剪贴板失败: %s", exc)
 
